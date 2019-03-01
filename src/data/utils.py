@@ -1,0 +1,82 @@
+import os
+from os import path
+import numpy as np
+from skimage import util
+from skimage import io
+from skimage.external import tifffile
+
+def crop(img,top,size):
+    '''
+        Crop img to size size, with the top left most pixel of top
+
+        Arguments:
+            img (C x X x Y array): image of size C channels by X by Y
+            top (tuple (x,y)): Top left most pixel to include in the cropped image
+            size (tuple (x,y)): Size of cropped image
+    '''
+    xstop = top[0]+size[0]
+    ystop = top[1]+size[1]
+
+    if(xstop >= img.shape[1]):
+        raise ValueError('x dim of image too small for crop')
+    if(ystop >= img.shape[2]):
+        raise ValueError('y dim of image too small for crop')
+
+    return img[:,top[0]:xstop,top[1]:ystop]
+
+def extract_tiles(real,target,step=42,real_size=572,target_size=388):
+    '''
+        Extract tiled images from real and target
+
+        returns: a generator yielding each paired cropped (real,target) tile
+        extracted from the input images.
+    '''
+    real_x_starts = np.arange(0,real.shape[1]-real_size,step)
+    target_x_starts = np.arange(0,target.shape[1]-target_size,step)
+
+    real_y_starts = np.arange(0,real.shape[2]-real_size,step)
+    target_y_starts = np.arange(0,target.shape[2]-target_size,step)
+
+    for real_x,target_x in zip(real_x_starts,target_x_starts):
+        for real_y,target_y in zip(real_y_starts,target_y_starts):
+            real_cropped = crop(real,(real_x,real_y),(real_size,real_size))
+            target_cropped = crop(target,
+                                  (target_x,target_y),
+                                  (target_size,target_size))
+            yield (real_cropped,target_cropped)
+
+def process_image(real_path,target_path,results_path):
+    '''
+        Args:
+            real_path (str): path to real image
+            target_path (str): path to target
+            results_path (str): folder to save process images in
+    '''
+    real = io.imread(real_path)
+    target = io.imread(target_path)
+
+    pad_width = (
+        (0,0),   # C channel
+        (92,92), # x
+        (92,92)  # y
+    )
+    real = util.pad(real,pad_width,'reflect')
+
+    os.mkdir(path.join(results_path,'real'))
+    os.mkdir(path.join(results_path,'target'))
+
+    for (i,r,t) in enumerate(extract_tiles(real,target)):
+        tifffile.imsave(path.join(
+                          results_path,
+                          'real',
+                          "%s_%s"%(i,path.basename(real_path))
+                        ),
+                        real
+                       )
+        tifffile.imsave(path.join(
+                          results_path,
+                          'target',
+                          "%s_%s"%(i,path.basename(real_path))
+                        ),
+                        target
+                       )
