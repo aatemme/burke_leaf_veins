@@ -21,6 +21,7 @@ tensorflow = "*"
 scipy = "*"
 click = "*"
 scikit-image = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.6"

@@ -20,13 +20,15 @@ def create_layer_t(Nin, Nout, stride=2, output_padding=0, padding=0, kernel=2):
         nn.ReLU()
     )
 
+NGF = 64
+
 class Down1(nn.Module):
     def __init__(self):
         super().__init__()
 
         self.layer = nn.Sequential( # <-N x 572 x 572
-            create_layer(3,64),
-            create_layer(64,64),
+            create_layer(3,NGF),
+            create_layer(NGF,NGF),
         ) # -> N x 568 x 568
 
     def forward(self,x):
@@ -44,8 +46,8 @@ class Down2(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-N x 284 x 284
-            create_layer(64,128),
-            create_layer(128,128),
+            create_layer(NGF,NGF*2),
+            create_layer(NGF*2,NGF*2),
         ) # -> N x 280 x 280
 
     def forward(self,x):
@@ -63,8 +65,8 @@ class Down3(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-N x 140 x 140
-            create_layer(128,256),
-            create_layer(256,256),
+            create_layer(NGF*2,NGF*4),
+            create_layer(NGF*4,NGF*4),
         ) # -> N x 136 x 136
 
     def forward(self,x):
@@ -82,8 +84,8 @@ class Down4(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-N x 68 x 68
-            create_layer(256,512),
-            create_layer(512,512),
+            create_layer(NGF*4,NGF*8),
+            create_layer(NGF*8,NGF*8),
         ) # -> N x 64 x 64
 
     def forward(self,x):
@@ -101,9 +103,9 @@ class Up5(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-N x 32 x 32
-            create_layer(512,1024),
-            create_layer(1024,1024),
-            create_layer_t(1024,512)
+            create_layer(NGF*8,NGF*16),
+            create_layer(NGF*16,NGF*16),
+            create_layer_t(NGF*16,NGF*8)
         ) # -> N x 64 x 64
 
     def forward(self,x):
@@ -118,9 +120,9 @@ class Up4(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-(Nx2) x 56 x 56
-            create_layer(1024,512),
-            create_layer(512,512),
-            create_layer_t(512,256)
+            create_layer(NGF*16,NGF*8),
+            create_layer(NGF*8,NGF*8),
+            create_layer_t(NGF*8,NGF*4)
         ) # -> N x 64 x 64
 
     def forward(self,x,y):
@@ -135,9 +137,9 @@ class Up3(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-(Nx2) x 104 x 104
-            create_layer(512,256),
-            create_layer(256,256),
-            create_layer_t(256,128)
+            create_layer(NGF*8,NGF*4),
+            create_layer(NGF*4,NGF*4),
+            create_layer_t(NGF*4,NGF*2)
         ) # -> N x 100 x 100
 
     def forward(self,x,y):
@@ -152,9 +154,9 @@ class Up2(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-(Nx2) x 200 x 200
-            create_layer(256,128),
-            create_layer(128,128),
-            create_layer_t(128,64)
+            create_layer(NGF*4,NGF*2),
+            create_layer(NGF*2,NGF*2),
+            create_layer_t(NGF*2,NGF)
         ) # -> N x 196 x 196
 
     def forward(self,x,y):
@@ -169,9 +171,9 @@ class Up1(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer = nn.Sequential( # <-(Nx2) x 200 x 200
-            create_layer(128,64),
-            create_layer(64,64),
-            create_layer(64,1,kernel=1,stride=1),
+            create_layer(NGF*2,NGF),
+            create_layer(NGF,NGF),
+            create_layer(NGF,1,kernel=1,stride=1),
             nn.Sigmoid()
         ) # -> 1 x 388 x 388
 

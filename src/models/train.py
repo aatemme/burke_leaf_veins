@@ -5,9 +5,11 @@ import math
 import itertools
 import torch
 from torch import optim
+import torch.nn.functional as F
 from pytorch_utils import batcher, vis
 from tensorboardX import SummaryWriter
 from torchvision.utils import make_grid
+from torchvision.datasets import DatasetFolder
 
 import utils
 import models
@@ -36,8 +38,8 @@ class Train():
         #
         # Data loading
         #
-        if(args.dataset == 'MNIST'):
-            train_loader, test_loader = utils.MNIST_loaders(args)
+        if(args.dataset == 'VEINS_100'):
+            train_loader, test_loader = utils.VEINS_100_loaders(args)
             self.train_loader = train_loader
             self.test_loader = test_loader
         else:
@@ -46,7 +48,7 @@ class Train():
         #
         # Model loading
         #
-        self.Net = models.Net().to(device)
+        self.Net = models.UNet().to(device)
         if args.resume:
             # TODO: Load models here
             pass
@@ -73,24 +75,28 @@ class Train():
         self.Net.train()
         for i, (x, target) in enumerate(self.train_loader):
           self.batch.batch()
-
+          target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
           x = x.to(device=self.device, non_blocking=True) # p(x,y)
-
           y = self.Net(x)
 
-          #TODO: set loss function
-          #loss = torch.mean((y - target)^2)
+          # print(target.size())
+          #loss = torch.sum((y - target)**2,dim=1)
+          #loss = torch.mean(loss)
+          loss = F.binary_cross_entropy(y,target)
 
           self.optimizer.zero_grad()
           loss.backward()
           self.optimizer.step()
           self.batch.add('loss',loss.item())
-          self.batch.add('gradients', utils.grad_norm(self.Net.parameters()))
+          self.batch.add('gradients', utils.grad_norm(self.Net.up1.parameters()))
 
           #
           # Progress reporting
           #
           if i % 125 == 0:
+            self.log.add_image('images/real', x.to('cpu').detach()[0],  epoch * len(self.train_loader) + i)
+            self.log.add_image('images/target', target.to('cpu')[0],  epoch * len(self.train_loader) + i)
+            self.log.add_image('images/segmented', y.to('cpu').detach()[0],  epoch * len(self.train_loader) + i)
 
             print('Epoch: %d [%d/%d]: ' %
                    (
