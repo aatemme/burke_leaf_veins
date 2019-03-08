@@ -10,6 +10,7 @@ from pytorch_utils import batcher, vis
 from tensorboardX import SummaryWriter
 from torchvision.utils import make_grid
 from torchvision.datasets import DatasetFolder
+from skimage import draw
 
 import utils
 import models
@@ -77,24 +78,25 @@ class Train():
           self.batch.batch()
           target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
           x = x.to(device=self.device, non_blocking=True) # p(x,y)
-          y = self.Net(x)
 
-          # print(target.size())
-          #loss = torch.sum((y - target)**2,dim=1)
-          #loss = torch.mean(loss)
+          y = self.Net(x)
           loss = F.binary_cross_entropy(y,target)
 
           self.optimizer.zero_grad()
           loss.backward()
           self.optimizer.step()
           self.batch.add('loss',loss.item())
-          self.batch.add('gradients', utils.grad_norm(self.Net.up1.parameters()))
+          self.batch.add('gradients', utils.grad_norm(self.Net.parameters()))
 
           #
           # Progress reporting
           #
           if i % 125 == 0:
-            self.log.add_image('images/real', x.to('cpu').detach()[0],  epoch * len(self.train_loader) + i)
+            x = x.to('cpu').detach()[0]
+            r,c = draw.polygon_perimeter([92,92,    92+388,92+388],
+                                         [92,92+388,92+388,92])
+            x[1,r,c] = 255
+            self.log.add_image('images/real', x,  epoch * len(self.train_loader) + i)
             self.log.add_image('images/target', target.to('cpu')[0],  epoch * len(self.train_loader) + i)
             self.log.add_image('images/segmented', y.to('cpu').detach()[0],  epoch * len(self.train_loader) + i)
 
