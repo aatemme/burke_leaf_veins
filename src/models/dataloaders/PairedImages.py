@@ -25,7 +25,7 @@ class PairedImages(torch.utils.data.Dataset):
     """
     def __init__(self,root):
         self.root = root
-        self.images = [basename(x) for x in glob.glob(join(root,'real',"*.tiff"))]
+        self.images = [basename(x) for x in glob.glob(join(root,'cleaned_targets',"*.tiff"))]
         self.length = len(self.images)
 
     def __getitem__(self, index):

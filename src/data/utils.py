@@ -5,11 +5,23 @@ import numpy as np
 from skimage import util
 from skimage import io
 from skimage.external import tifffile
+import skimage.morphology as mph
 
 def mkdir(dir):
     if path.exists(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
+
+def clean_target(target, disk_size = 10):
+    '''
+        Creates a binary target, removes objects smaller than 100 px^2,
+        and trys to connected lines.
+    '''
+    closed_image = mph.remove_small_objects(target > 0.5, min_size = 100)
+    closed_image = mph.closing(
+                        util.pad(closed_image,disk_size,'constant'),
+                        selem=mph.disk(disk_size))
+    return closed_image[disk_size:-disk_size,disk_size:-disk_size]
 
 def crop(img,top,size):
     '''
