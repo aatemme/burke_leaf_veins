@@ -7,7 +7,7 @@ def create_layer(Nin,Nout,kernel=3,padding=0,stride=1):
     return nn.Sequential(
         nn.Conv2d(Nin,Nout,kernel,padding=padding,stride=stride),
         nn.BatchNorm2d(Nout),
-        nn.LeakyReLU(1)
+        nn.LeakyReLU(0.5)
     )
 
 def create_layer_t(Nin, Nout, stride=2, output_padding=0, padding=0, kernel=2):
@@ -19,7 +19,7 @@ def create_layer_t(Nin, Nout, stride=2, output_padding=0, padding=0, kernel=2):
                            padding=padding,
                            output_padding=output_padding),
         nn.BatchNorm2d(Nout),
-        nn.LeakyReLU(1)
+        nn.LeakyReLU(0.5)
     )
 
 NGF = 64
