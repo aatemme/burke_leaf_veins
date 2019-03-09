@@ -7,6 +7,18 @@ import json
 import glob
 from skimage.external import tifffile
 
+def normalize(img):
+    '''
+        Normalize an image to mean of 0 and std of 1
+
+        Returns:
+            The normalized image
+    '''
+    mean = torch.mean(img[:])
+    std = torch.std(img[:])
+    img = (img - mean)/std
+    return img
+
 
 class PairedImages(torch.utils.data.Dataset):
     """
@@ -20,6 +32,8 @@ class PairedImages(torch.utils.data.Dataset):
         img = self.images[index]
         real = tifffile.imread(join(self.root,'real',img))
         target = tifffile.imread(join(self.root,'target',img))
+
+        real = normalize(real.astype(float))
 
         real = torch.from_numpy(real).permute(2,0,1).float()
         target = torch.from_numpy(target).float() / 255
