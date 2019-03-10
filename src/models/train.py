@@ -92,7 +92,7 @@ class Train():
           # Progress reporting
           #
           if i % 125 == 0:
-            x = x.to('cpu').detach()[0] 
+            x = x.to('cpu').detach()[0]
             x = (x - torch.min(x[:])) / (torch.max(x[:]) - torch.min(x[:]))
             r,c = draw.polygon_perimeter([92,92,    92+388,92+388],
                                          [92,92+388,92+388,92])
@@ -122,6 +122,19 @@ class Train():
         '''
         pass
 
+    def save(self,epoch):
+        folder_name = './%s_epoch%d'%(self.args.comment,epoch)
+        nets = {
+            'Net': self.Net
+        }
+        to_pickle = {
+            'args': self.args,
+            'optimizers':{
+                'inference': self.optimizer
+            }
+        }
+        util.save_nets('saves/' + folder_name,nets,to_pickle)
+
     def main(self):
         '''
             Perform training
@@ -131,10 +144,7 @@ class Train():
             self.test(epoch)
 
             if self.args.save_interval != 0 and epoch % self.args.save_interval == 0:
-                # TODO: Save models here
-                # torch.save(optimizer.state_dict(), 'optimizer.pth')
-                # torch.save(model.state_dict(), 'model.pth')
-                pass
+                self.save(epoch)
 
 if __name__ == '__main__':
     trainer = Train()
