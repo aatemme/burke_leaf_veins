@@ -92,10 +92,11 @@ class Train():
           # Progress reporting
           #
           if i % 125 == 0:
-            x = x.to('cpu').detach()[0]
+            x = x.to('cpu').detach()[0] 
+            x = (x - torch.min(x[:])) / (torch.max(x[:]) - torch.min(x[:]))
             r,c = draw.polygon_perimeter([92,92,    92+388,92+388],
                                          [92,92+388,92+388,92])
-            x[1,r,c] = 255
+            x[1,r,c] = 1
             self.log.add_image('images/real', x,  epoch * len(self.train_loader) + i)
             self.log.add_image('images/target', target.to('cpu')[0],  epoch * len(self.train_loader) + i)
             self.log.add_image('images/segmented', y.to('cpu').detach()[0],  epoch * len(self.train_loader) + i)

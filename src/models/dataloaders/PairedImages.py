@@ -33,9 +33,9 @@ class PairedImages(torch.utils.data.Dataset):
         real = tifffile.imread(join(self.root,'real',img))
         target = tifffile.imread(join(self.root,'target',img))
 
-        real = normalize(real.astype(float))
-
         real = torch.from_numpy(real).permute(2,0,1).float()
+        real = normalize(real)
+        
         target = torch.from_numpy(target).float() / 255
 
         return real, target

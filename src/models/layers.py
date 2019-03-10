@@ -6,8 +6,7 @@ def create_layer(Nin,Nout,kernel=3,padding=0,stride=1):
 
     return nn.Sequential(
         nn.Conv2d(Nin,Nout,kernel,padding=padding,stride=stride),
-        nn.BatchNorm2d(Nout),
-        nn.LeakyReLU(0.5)
+        nn.LeakyReLU()
     )
 
 def create_layer_t(Nin, Nout, stride=2, output_padding=0, padding=0, kernel=2):
@@ -18,8 +17,7 @@ def create_layer_t(Nin, Nout, stride=2, output_padding=0, padding=0, kernel=2):
                            stride=stride,
                            padding=padding,
                            output_padding=output_padding),
-        nn.BatchNorm2d(Nout),
-        nn.LeakyReLU(0.5)
+        nn.LeakyReLU()
     )
 
 NGF = 64
@@ -175,7 +173,7 @@ class Up1(nn.Module):
         self.layer = nn.Sequential( # <-(Nx2) x 200 x 200
             create_layer(NGF*2,NGF),
             create_layer(NGF,NGF),
-            create_layer(NGF,1,kernel=1,stride=1),
+            nn.Conv2d(NGF,1,1,stride=1),
             nn.Sigmoid()
         ) # -> 1 x 388 x 388
 
