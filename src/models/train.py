@@ -6,7 +6,7 @@ import itertools
 import torch
 from torch import optim
 import torch.nn.functional as F
-from pytorch_utils import batcher, vis
+from pytorch_utils import batcher, vis, util
 from tensorboardX import SummaryWriter
 from torchvision.utils import make_grid
 from torchvision.datasets import DatasetFolder
@@ -142,9 +142,11 @@ class Train():
         for epoch in range(int(self.args.epochs)):
             self.train(epoch)
             self.test(epoch)
-
+            
             if self.args.save_interval != 0 and epoch % self.args.save_interval == 0:
                 self.save(epoch)
+
+        self.save(int(self.args.epochs))
 
 if __name__ == '__main__':
     trainer = Train()
