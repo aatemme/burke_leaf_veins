@@ -72,7 +72,7 @@ def process_image(real_path,target_path,results_path):
     )
     real = util.pad(real,pad_width,'reflect')
 
-    for (i,img) in enumerate(extract_tiles(real,target,step=100)):
+    for (i,img) in enumerate(extract_tiles(real,target,step=250)):
         t, r = img
         output_filename = "%s_%s.tiff"%(path.basename(real_path).split('.')[0],i)
         tifffile.imsave(path.join(
