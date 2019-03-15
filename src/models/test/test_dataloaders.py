@@ -13,7 +13,7 @@ def test_normalize():
     assert torch.std(img[:]).item() == pytest.approx(1,rel=1e-4)
 
 def test_PairedImages_size():
-    train_data = PairedImages('../../data/processed/veins/')
+    train_data = PairedImages('../../data/processed/veins/test/')
 
     real,target = train_data.__getitem__(1)
 
