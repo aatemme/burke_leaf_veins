@@ -6,7 +6,6 @@ import numpy as np
 import json
 import glob
 from skimage import io, util
-from imgaug import augmenters as iaa
 
 # aug_all = iaa.Sequential([
 #     iaa.Fliplr(0.5), # horizontally flip 50% of the images
