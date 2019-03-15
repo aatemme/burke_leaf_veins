@@ -104,6 +104,17 @@ class Train():
 
             self.batch.write(self.log, epoch * len(self.train_loader) + i)
 
+    def test_average(self, loader, iters=5):
+        loss = 0.0
+        for i in range(inters):
+            x, target = next(loader.__iter__())
+            x = x.to(device=self.device, non_blocking=True) # p(x,y)
+            target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
+            y = self.Net(x)
+            loss += F.binary_cross_entropy(y,target).item()
+
+        return loss/iters, x, y
+
     def test(self,epoch):
         '''
             Generate some logging information that is too computationally
@@ -111,12 +122,8 @@ class Train():
 
             :param epoch (int): number of epochs trained, used for logging
         '''
-        x, target = next(self.test_loader.__iter__())
-        x = x.to(device=self.device, non_blocking=True) # p(x,y)
-        target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
-        y = self.Net(x)
-        loss = F.binary_cross_entropy(y,target)
-        self.log.add_scalar('test/test_loss',loss.item(),epoch)
+        loss, x, y = self.test_average(self.test_loader)
+        self.log.add_scalar('test/test_loss',loss),epoch)
 
         x = x.to('cpu').detach()[0]
         x = (x - torch.min(x[:])) / (torch.max(x[:]) - torch.min(x[:]))
@@ -128,11 +135,7 @@ class Train():
         self.log.add_image('images/segmented', y.to('cpu').detach()[0])
 
 
-        x, target = next(self.train_loader.__iter__())
-        x = x.to(device=self.device, non_blocking=True) # p(x,y)
-        target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
-        y = self.Net(x)
-        loss = F.binary_cross_entropy(y,target)
+        loss, x, y = self.test_average(self.train_loader)
         self.log.add_scalar('test/train_loss',loss.item(),epoch)
 
     def save(self,epoch):
@@ -155,7 +158,7 @@ class Train():
         for epoch in range(int(self.args.epochs)):
             self.train(epoch)
             self.test(epoch)
-            
+
             if self.args.save_interval != 0 and epoch % self.args.save_interval == 0:
                 self.save(epoch)
 
