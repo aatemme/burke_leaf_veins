@@ -91,16 +91,7 @@ class Train():
           #
           # Progress reporting
           #
-          if i % 125 == 0:
-            x = x.to('cpu').detach()[0]
-            x = (x - torch.min(x[:])) / (torch.max(x[:]) - torch.min(x[:]))
-            r,c = draw.polygon_perimeter([92,92,    92+388,92+388],
-                                         [92,92+388,92+388,92])
-            x[1,r,c] = 1
-            self.log.add_image('images/real', x,  epoch * len(self.train_loader) + i)
-            self.log.add_image('images/target', target.to('cpu')[0],  epoch * len(self.train_loader) + i)
-            self.log.add_image('images/segmented', y.to('cpu').detach()[0],  epoch * len(self.train_loader) + i)
-
+          if i % 12 == 0:
             print('Epoch: %d [%d/%d]: ' %
                    (
                      epoch,
@@ -120,7 +111,29 @@ class Train():
 
             :param epoch (int): number of epochs trained, used for logging
         '''
-        pass
+        x, target = next(self.test_loader.__iter__())
+        x = x.to(device=self.device, non_blocking=True) # p(x,y)
+        target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
+        y = self.Net(x)
+        loss = F.binary_cross_entropy(y,target)
+        self.log.add_scalar('test/test_loss',loss.item(),epoch)
+
+        x = x.to('cpu').detach()[0]
+        x = (x - torch.min(x[:])) / (torch.max(x[:]) - torch.min(x[:]))
+        r,c = draw.polygon_perimeter([92,92,    92+388,92+388],
+                                     [92,92+388,92+388,92])
+        x[1,r,c] = 1
+        self.log.add_image('images/real', x,  epoch)
+        self.log.add_image('images/target', target.to('cpu')[0])
+        self.log.add_image('images/segmented', y.to('cpu').detach()[0])
+
+
+        x, target = next(self.train_loader.__iter__())
+        x = x.to(device=self.device, non_blocking=True) # p(x,y)
+        target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
+        y = self.Net(x)
+        loss = F.binary_cross_entropy(y,target)
+        self.log.add_scalar('test/train_loss',loss.item(),epoch)
 
     def save(self,epoch):
         folder_name = './%s_epoch%d'%(self.args.comment,epoch)

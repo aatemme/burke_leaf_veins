@@ -35,12 +35,17 @@ def parse_args():
     return  parser.parse_args()
 
 def VEINS_100_loaders(args):
-    train_data = PairedImages('../../data/processed/veins/')
-
+    train_data = PairedImages('../../data/processed/veins/test/')
+    
     train_loader = DataLoader(train_data, batch_size=args.batch_size,
                               shuffle=True, num_workers=4, pin_memory=True)
 
-    return train_loader, train_loader
+    test_data = PairedImages('../../data/processed/veins/train')
+    test_loader = DataLoader(test_data, batch_size=args.batch_size,
+                              shuffle=True, num_workers=4, pin_memory=True)
+
+
+    return train_loader, test_loader
 
 def grad_norm(parameters, norm_type=2):
     parameters = list(filter(lambda p: p.grad is not None, parameters))
