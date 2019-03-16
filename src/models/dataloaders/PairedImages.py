@@ -7,6 +7,19 @@ import json
 import glob
 from skimage import io, util
 
+from albumentations import (
+    Compose,
+    Cutout,
+    ChannelShuffle,
+    HorizontalFlip,
+    VerticalFlip,
+    RandomRotate90,
+    Transpose,
+    ElasticTransform,
+    GaussianBlur,
+    NoOp
+)
+
 # aug_all = iaa.Sequential([
 #     iaa.Fliplr(0.5), # horizontally flip 50% of the images
 #     iaa.Flipud(0.5), # vertically flip 50% of the images
@@ -46,10 +59,24 @@ def crop(img,top,size):
 class PairedImages(torch.utils.data.Dataset):
     """
     """
-    def __init__(self,root):
+    def __init__(self,root,augment = True):
         self.root = root
         self.images = [basename(x) for x in glob.glob(join(root,'target',"*.png"))]
         self.length = len(self.images)
+
+        if augment:
+            self.aug = Compose([
+                HorizontalFlip(),
+                VerticalFlip(),
+                Transpose(),
+                RandomRotate90(),
+                ElasticTransform(),
+                Cutout(num_holes=10,max_h_size=50,max_w_size=50),
+                ChannelShuffle(),
+                GaussianBlur()
+            ])
+        else:
+            self.aug = NoOp()
 
     def __getitem__(self, index):
         img = self.images[index]
@@ -69,13 +96,11 @@ class PairedImages(torch.utils.data.Dataset):
         real = crop(real,upper_left,(572,572))
         target = crop(target,upper_left,(388,388))
 
-        # seq = aug_all.to_deterministic()
-        # real = seq.augment_images(real)
-        # target = seq.augment_images(target[np.newaxis,:,:])
+        augmented = aug(image = real, mask = target)
 
         #Functions applied to torch tensors
-        real = normalize(torch.from_numpy(real).permute(2,0,1).float())
-        target = torch.from_numpy(target).float() / 255
+        real = normalize(torch.from_numpy(augmented['image']).permute(2,0,1).float())
+        target = torch.from_numpy(augmented['mask']).float() / 255
 
         return real, target
 
