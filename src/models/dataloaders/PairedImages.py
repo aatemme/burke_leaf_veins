@@ -10,13 +10,13 @@ from skimage import io, util
 from albumentations import (
     Compose,
     Cutout,
+    Blur,
     ChannelShuffle,
     HorizontalFlip,
     VerticalFlip,
     RandomRotate90,
     Transpose,
     ElasticTransform,
-    GaussianBlur,
     NoOp
 )
 
@@ -70,10 +70,9 @@ class PairedImages(torch.utils.data.Dataset):
                 VerticalFlip(),
                 Transpose(),
                 RandomRotate90(),
-                ElasticTransform(),
-                Cutout(num_holes=10,max_h_size=50,max_w_size=50),
-                ChannelShuffle(),
-                GaussianBlur()
+                Blur(blur_limit=25),
+                Cutout(num_holes=7,max_h_size=100,max_w_size=100),
+                ChannelShuffle()
             ])
         else:
             self.aug = NoOp()
@@ -96,7 +95,7 @@ class PairedImages(torch.utils.data.Dataset):
         real = crop(real,upper_left,(572,572))
         target = crop(target,upper_left,(388,388))
 
-        augmented = aug(image = real, mask = target)
+        augmented = self.aug(image = real, mask = target)
 
         #Functions applied to torch tensors
         real = normalize(torch.from_numpy(augmented['image']).permute(2,0,1).float())

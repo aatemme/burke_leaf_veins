@@ -32,15 +32,19 @@ def parse_args():
                         help="Where to save log data")
     parser.add_argument('--dataset', default="VEINS_100", type=str,
                         help="Data set to train on (MNIST or SVHN) default: MNIST")
+    parser.add_argument('--augment', action='store_true', default=False,
+                        help="Augment dataset")
+    parser.add_argument('--weighted_ce', action='store_true', default=False,
+                        help="Use weighted cross-entropy loss, default is unweighted")
     return  parser.parse_args()
 
 def VEINS_100_loaders(args):
-    train_data = PairedImages('../../data/processed/veins/test/')
-    
+    train_data = PairedImages('../../data/processed/veins/test/', augment = args.augment)
+
     train_loader = DataLoader(train_data, batch_size=args.batch_size,
                               shuffle=True, num_workers=4, pin_memory=True)
 
-    test_data = PairedImages('../../data/processed/veins/train')
+    test_data = PairedImages('../../data/processed/veins/train', augment = False)
     test_loader = DataLoader(test_data, batch_size=args.batch_size,
                               shuffle=True, num_workers=4, pin_memory=True)
 

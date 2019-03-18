@@ -80,7 +80,13 @@ class Train():
           x = x.to(device=self.device, non_blocking=True) # p(x,y)
 
           y = self.Net(x)
-          loss = F.binary_cross_entropy(y,target)
+          
+          if self.args.weighted_ce:
+            weight = target
+            weight[weight == 0] = 0.1
+            loss = F.binary_cross_entropy(y,target, weight=weight)
+          else:
+            loss = F.binary_cross_entropy(y,target)
 
           self.optimizer.zero_grad()
           loss.backward()
@@ -106,14 +112,14 @@ class Train():
 
     def test_average(self, loader, iters=5):
         loss = 0.0
-        for i in range(inters):
+        for i in range(iters):
             x, target = next(loader.__iter__())
             x = x.to(device=self.device, non_blocking=True) # p(x,y)
             target = target.to(device=self.device, non_blocking=True).unsqueeze(1)
             y = self.Net(x)
             loss += F.binary_cross_entropy(y,target).item()
 
-        return loss/iters, x, y
+        return loss/iters, x, target, y
 
     def test(self,epoch):
         '''
@@ -122,8 +128,8 @@ class Train():
 
             :param epoch (int): number of epochs trained, used for logging
         '''
-        loss, x, y = self.test_average(self.test_loader)
-        self.log.add_scalar('test/test_loss',loss),epoch)
+        loss, x, target, y = self.test_average(self.test_loader)
+        self.log.add_scalar('test/test_loss',loss,epoch)
 
         x = x.to('cpu').detach()[0]
         x = (x - torch.min(x[:])) / (torch.max(x[:]) - torch.min(x[:]))
@@ -131,12 +137,12 @@ class Train():
                                      [92,92+388,92+388,92])
         x[1,r,c] = 1
         self.log.add_image('images/real', x,  epoch)
-        self.log.add_image('images/target', target.to('cpu')[0])
-        self.log.add_image('images/segmented', y.to('cpu').detach()[0])
+        self.log.add_image('images/target', target.to('cpu')[0], epoch)
+        self.log.add_image('images/segmented', y.to('cpu').detach()[0], epoch)
 
 
-        loss, x, y = self.test_average(self.train_loader)
-        self.log.add_scalar('test/train_loss',loss.item(),epoch)
+        loss, _, _, _ = self.test_average(self.train_loader)
+        self.log.add_scalar('test/train_loss',loss,epoch)
 
     def save(self,epoch):
         folder_name = './%s_epoch%d'%(self.args.comment,epoch)
