@@ -34,7 +34,7 @@ def parse_args():
                         help="Data set to train on (MNIST or SVHN) default: MNIST")
     parser.add_argument('--augment', action='store_true', default=False,
                         help="Augment dataset")
-    parser.add_argument('--weighted_ce', action='store_true', default=False,
+    parser.add_argument('--weighted-ce', action='store_true', default=False,
                         help="Use weighted cross-entropy loss, default is unweighted")
     return  parser.parse_args()
 
