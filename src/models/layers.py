@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def create_layer(Nin,Nout,kernel=3,padding=0,stride=1):
+def create_layer(Nin,Nout,kernel=3,padding=0,stride=1,dilation=1):
 
     return nn.Sequential(
-        nn.Conv2d(Nin,Nout,kernel,padding=padding,stride=stride),
+        nn.Conv2d(Nin,Nout,kernel,padding=padding,stride=stride,dilation=dilation),
         nn.ELU(alpha=2)
     )
 
@@ -102,11 +102,15 @@ class Down4(nn.Module):
 class Up5(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer = nn.Sequential( # <-N x 32 x 32
-            create_layer(NGF*8,NGF*16),
-            create_layer(NGF*16,NGF*16),
-            create_layer_t(NGF*16,NGF*8)
-        ) # -> N x 64 x 64
+
+        self.dilation_1 = create_layer(NGF*8,NGF*16, dilation = 1)
+        self.dilation_2 = create_layer(NGF*16,NGF*16,dilation = 2,padding=2)
+        self.dilation_4 = create_layer(NGF*16,NGF*16,dilation = 4,padding=4)
+        self.dilation_8 = create_layer(NGF*16,NGF*16,dilation = 8,padding=8)
+        self.dilation_16 = create_layer(NGF*16,NGF*16,dilation = 16,padding=16)
+        self.dilation_32 = create_layer(NGF*16,NGF*16,dilation = 32,padding=32)
+        self.up = create_layer_t(NGF*16,NGF*16)
+        self.conv = create_layer(NGF*16,NGF*8,kernel=5,stride=1,padding=0)
 
     def forward(self,x):
         '''
@@ -114,7 +118,18 @@ class Up5(nn.Module):
 
             x output dim: 56 x 56
         '''
-        return self.layer(x)
+        x1 = self.dilation_1(x)
+        x2 = self.dilation_2(x1)
+        x4 = self.dilation_4(x2)
+        x8 = self.dilation_8(x4)
+        x16 = self.dilation_16(x8)
+        x32 = self.dilation_32(x16)
+
+        x = x1 + x2 + x4 + x8 + x16 + x32
+
+        x = self.up(x)
+        x = self.conv(x)
+        return x
 
 class Up4(nn.Module):
     def __init__(self):
