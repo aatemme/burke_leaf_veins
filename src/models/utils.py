@@ -9,6 +9,7 @@ from torchvision import datasets, transforms
 from torch import nn
 from pytorch_utils import init
 from dataloaders import PairedImages
+import pickle
 
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -24,8 +25,8 @@ def parse_args():
                         help='random seed (default: 1)')
     parser.add_argument('--save-interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before checkpointing')
-    parser.add_argument('--resume', action='store_true', default=False,
-                        help='resume training from checkpoint')
+    parser.add_argument('--resume', type=str, default=None,
+                        help='resume training from checkpoint [--resume /path/to/save/folder/]')
     parser.add_argument('--comment', default='',
                         help="Comment to pass to tensorbaordX")
     parser.add_argument('--logdir', default=None,
@@ -50,6 +51,14 @@ def VEINS_100_loaders(args):
 
 
     return train_loader, test_loader
+
+def load_nets(dir,net):
+    state_dict = torch.load(dir + '/Net.net')
+    net.load_state_dict(state_dict)
+
+    data = pickle.load(open(dir + '/TrainingLog.pkl','rb'))
+
+    return data['args'], data['optimizers']['inference']
 
 def grad_norm(parameters, norm_type=2):
     parameters = list(filter(lambda p: p.grad is not None, parameters))
