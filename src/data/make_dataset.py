@@ -4,6 +4,7 @@ import multiprocessing as mp
 import glob
 import click
 import logging
+import csv
 from pathlib import Path
 from utils import process_image, mkdir
 from tqdm import tqdm
@@ -31,7 +32,22 @@ def main(project_dir):
     mkdir(join(result_path,'real'))
     mkdir(join(result_path,'target'))
 
-    for traced_image in tqdm(glob.glob(skel_paths)):
+    #Remove blacklisted images
+    blacklist_file = join(project_dir,
+                          'data','raw',
+                          'Veins machine learning with Chris','blacklist.csv')
+
+    image_list = glob.glob(skel_paths)
+    if(exists(blacklist_file)):
+        #Remove files in blacklist
+        logger.info("Blacklist file found")
+        with open(blacklist_file,'r') as fin:
+            blacklist = list(csv.reader(fin))[0]
+        logger.info("Images %s found in blacklist file, will be skipped."%(blacklist))
+        basenames = [basename(b).split("_")[0] for b in image_list]
+        image_list = [image_list[i] for (i,p) in enumerate(basenames) if p not in blacklist]
+
+    for traced_image in tqdm(image_list):
         base = basename(traced_image)
 
         real_path = join(raw_path,base.split('_')[0] + '.jpeg')

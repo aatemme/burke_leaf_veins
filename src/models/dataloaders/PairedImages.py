@@ -25,6 +25,42 @@ from albumentations import (
 #     iaa.Flipud(0.5), # vertically flip 50% of the images
 # ])
 
+def cv_split(data,n_way,n):
+    '''
+        Split data into N-way cross validation sets. Returns the data split
+        into test and train data for the n^th cross-validation split
+
+        The the results are deterministic, given the order of data does not
+        change from call to call.
+
+        Args:
+            data (list): data to split
+            n_way (int): cross validation split in the range of [0,n_way).
+            n (int): The cross validation split to return
+
+        Returns:
+            (train_data, test_data)
+    '''
+    n = int(n)
+    n_way = int(n_way)
+
+    if(n >= n_way or n < 0):
+        raise ValueError("Split must be in the range [0,n_way).")
+
+    N = len(data)
+
+    bin_size = int(N/n_way)
+    remainder = N % n_way
+
+    #The min(_,_) adds 1 point to each bin until the remainder is used up
+    test_start = bin_size * (n) + min(remainder,n)
+    test_stop  = bin_size * (n + 1) + min(remainder,n+1)
+
+    train_data = data[:test_start] + data[test_stop:]
+    test_data =  data[test_start:test_stop]
+
+    return (train_data, test_data)
+
 def normalize(img):
     '''
         Normalize an image to mean of 0 and std of 1
@@ -59,9 +95,31 @@ def crop(img,top,size):
 class PairedImages(torch.utils.data.Dataset):
     """
     """
-    def __init__(self,root,augment = True):
+    def __init__(self,root,augment = True,cv=None,n_split=None,cv_test=False):
+        '''
+            Args:
+                root (str): path to the folder containing the target and real
+                    folders, which contain the masks and real images.
+                augment (bool): Augment the images during training
+                cv (int): Split the data for N-way cross validation, where
+                    cv=N. Used in conjunction with n_split.
+                    (default=None, use all data during training)
+                n_split (int): Train on the n^th n-way corss validation set,
+                    where n_split=n. Used in conjunction with cv
+                    (default=None, use all data during training)
+                cv_test (bool): if True, return the test data set, otherwise
+                    return the train dataset for the n^th cross validation set.
+        '''
         self.root = root
         self.images = [basename(x) for x in glob.glob(join(root,'target',"*.png"))]
+
+        if cv is not None and n_split is not None:
+            train, test = cv_split(self.images,cv,n_split)
+            if cv_test:
+                self.images = test
+            else:
+                self.images = train
+
         self.length = len(self.images)
 
         if augment:

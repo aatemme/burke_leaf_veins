@@ -37,15 +37,31 @@ def parse_args():
                         help="Augment dataset")
     parser.add_argument('--weighted-ce', action='store_true', default=False,
                         help="Use weighted cross-entropy loss, default is unweighted")
+    parser.add_argument('--cv', default=None, type=int,
+                        help=("Setup dataloader for a n-way cross-validation,"
+                        " where N is given as --cv N, used in conjunction with"
+                        "--n_cv"))
+    parser.add_argument('--n_cv', default=0, type=int,
+                        help=("Train/Test on the n^th cross-validation set "
+                        "where n is given as --n_cv n, used in conjunction with"
+                        "--cv"))
     return  parser.parse_args()
 
 def VEINS_100_loaders(args):
-    train_data = PairedImages('../../data/processed/veins/test/', augment = args.augment)
+    train_data = PairedImages('../../data/processed/veins/',
+                               augment = args.augment,
+                               cv=args.cv,
+                               n_split=args.n_cv)
 
     train_loader = DataLoader(train_data, batch_size=args.batch_size,
                               shuffle=True, num_workers=4, pin_memory=True)
 
-    test_data = PairedImages('../../data/processed/veins/train', augment = False)
+    test_data = PairedImages('../../data/processed/veins/',
+                              augment = False,
+                              cv=args.cv,
+                              n_split=args.n_cv,
+                              cv_test=True)
+
     test_loader = DataLoader(test_data, batch_size=args.batch_size,
                               shuffle=True, num_workers=4, pin_memory=True)
 
