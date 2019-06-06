@@ -87,7 +87,7 @@ class Train():
 
           if self.args.weighted_ce:
             weight = target
-            weight[weight == 0] = 0.1
+            weight[weight == 0] = 0.026
             loss = F.binary_cross_entropy(y,target, weight=weight)
           else:
             loss = F.binary_cross_entropy(y,target)
