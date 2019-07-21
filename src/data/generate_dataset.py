@@ -49,7 +49,7 @@ def main(project_dir):
                     'Veins machine learning with Chris',
                     'Untraced Veins')
 
-    result_path = join(project_dir,'data','processed','veins')
+    result_path = join(project_dir,'data','processed','all')
 
     image_paths = glob.glob(skel_paths)
 

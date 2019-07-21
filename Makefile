@@ -10,12 +10,6 @@ PROFILE = default
 PROJECT_NAME = burke_leaf_veins
 PYTHON_INTERPRETER = pipenv run python
 
-ifeq (,$(shell which conda))
-HAS_CONDA=False
-else
-HAS_CONDA=True
-endif
-
 #################################################################################
 # COMMANDS                                                                      #
 #################################################################################
@@ -46,6 +40,7 @@ clean_targets:
 
 dataset:
 	$(PYTHON_INTERPRETER) src/data/generate_dataset.py
+	$(PYTHON_INTERPRETER) src/data/split_dataset.py
 
 clean_data:
 	rm -rf data/interim/veins
