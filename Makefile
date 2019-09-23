@@ -46,6 +46,57 @@ clean_data:
 	rm -rf data/interim/veins
 	rm -rf data/processed/veins
 
+#####
+# Final Model
+#####
+
+FINAL_MODEL = models/FINAL/src/
+FINAL_STATE = models/FINAL/saves/FINAL_CE05_epoch1900
+OUTPUT_FOLDER = models/FINAL/results/1900_val_06
+IMAGES = data/processed/validation/real/*.jpeg
+segment-validation-images:
+	  mkdir -p $(OUTPUT_FOLDER)
+		qsub -v model=$(FINAL_MODEL),state=$(FINAL_STATE),results=$(OUTPUT_FOLDER),images=$(IMAGES),THRESH=0.6 src/data/segment_folder.sh
+
+data/interm/final_test_loss.csv:
+	$(PYTHON_INTERPRETER) src/eval/test_loss_to_cv.py \
+		src/models/runs/FINAL/ \
+	  data/interm/final_test_loss.csv
+
+OUTPUT_FILE = data/processed/final_lengths_validation_1900_05.sqlite
+INPUT_FILES = models/FINAL/results/1900_val/*_probs.png
+data/processed/final_lengths_validation_1900_05.sqlite:
+	qsub -N FINAL_THRESHOLD -v THRESH=0.5,OUTPUT_FILE=$(OUTPUT_FILE),INPUT_FILES=$(INPUT_FILES) src/data/extract_vein_length_folder_sapelo2.sh
+
+#####
+# Find the best segmentation threshold for the FINAL model
+#####
+threshold-tests:
+	for fold in 1 ; do \
+		for thresh in 0.2 0.3 0.4 0.5 ; do \
+			qsub -N FCV3_F$$foldF_T$$threshT \
+		   		 -v FOLD_CV=3,FOLD=$$fold,THRESH=$$thresh \
+					 src/eval/threshold_eval_sapelo2.sh ; \
+		done \
+	done
+
+data/processed/cv_threshold_lengths.sqlite:
+	for fold in 1; do \
+		for thresh in 0.1 0.3 0.4 0.5 ; do \
+			qsub -N VeinLengths_F$$fold_T$$thresh \
+					 -v FOLD_CV=3,FOLD=$$fold,THRESH=$$thresh \
+					 src/eval/extract_vein_length_sapelo2.sh ; \
+		done \
+	done
+
+data/interm/cv_test_loss.csv:
+	$(PYTHON_INTERPRETER) src/eval/test_loss_to_cv.py \
+				src/models/runs/CV_RUNS/ \
+				data/interm/cv_test_loss.csv
+
+
+
+
 ###
 # Use the v3 trained model to segment images using wegiths from 800 epochs
 ###

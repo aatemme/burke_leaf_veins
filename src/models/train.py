@@ -50,22 +50,19 @@ class Train():
             self.args = largs
             print("Args over ridden by --resume: %s" % (self.args,))
 
-            self.optimizer = optimizer
-        else:
-            #
+        #    self.optimizer = optimizer
+        #else:
+        #    #
             # Optimizers
             #
-            self.optimizer = optim.Adam(self.Net.parameters(), lr=args.lr)
+        self.optimizer = optim.Adam(self.Net.parameters(), lr=args.lr)
 
         #
         # Data loading
         #
-        if(args.dataset == 'VEINS_100'):
-            train_loader, test_loader = utils.VEINS_100_loaders(args)
-            self.train_loader = train_loader
-            self.test_loader = test_loader
-        else:
-            exit("Invalid --data set option")
+        train_loader, test_loader = utils.VEINS_100_loaders(args)
+        self.train_loader = train_loader
+        self.test_loader = test_loader
 
         #
         # Logging setup
@@ -87,7 +84,7 @@ class Train():
 
           if self.args.weighted_ce:
             weight = target
-            weight[weight == 0] = 0.026
+            weight[weight == 0] = self.args.weighted_ce
             loss = F.binary_cross_entropy(y,target, weight=weight)
           else:
             loss = F.binary_cross_entropy(y,target)

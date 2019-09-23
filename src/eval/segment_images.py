@@ -12,7 +12,7 @@ from skimage.transform import rescale
 
 project_dir = Path(__file__).resolve().parents[2]
 sys.path.append(join(project_dir,'src','models','dataloaders'))
-from PairedImages import normalize
+from PairedImages import normalize, cv_split
 
 def pad_val(size):
     """
@@ -75,15 +75,16 @@ def load_state(nets,state):
 @click.argument('state')
 @click.argument('results_folder')
 @click.argument('images', required=True, nargs=-1)
-def main(model,state,images,results_folder):
+@click.option('--threshold', type=float, default=0.4)
+@click.option('--fold_cv', type=int, default=None)
+@click.option('--fold', type=int, default=None)
+def main(model,state,images,results_folder, threshold, fold_cv, fold):
     '''
         Loads raw images and segments them using the given network and trained weights (state).
 
         Saves the segmentation probabilities as P * 2^16 as a uint16.
         Saves the segmentation mask overplayed on the image for debugging.
     '''
-    threshold = 0.4
-
     sys.path.append(abspath(model))
     from models import UNet
 
@@ -91,7 +92,16 @@ def main(model,state,images,results_folder):
     load_state({'Net': net},state)
     net = net.eval()
 
-    for image_path in tqdm(images):
+    if fold:
+        assert fold_cv is not None, "fold and fold_cv must be set togeather"
+
+    if fold_cv:
+        assert fold is not None, "fold and fold_cv must be set togeather"
+        _, image_list = cv_split(images,fold_cv,fold)
+    else:
+        image_list = images
+
+    for image_path in tqdm(image_list):
         image = io.imread(image_path)
 
         y = segment(net,image)

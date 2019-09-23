@@ -19,8 +19,27 @@ import numpy as np
 @click.command()
 @click.argument('database_conn')
 @click.argument('table_name')
+@click.argument('threshold', type=float)
 @click.argument('masks', required=True, nargs=-1)
-def main(masks,database_conn,table_name):
+def main(masks,database_conn,table_name, threshold):
+    '''
+        Extracts vein length in pixels and placeses
+        the results in an sql table.
+
+        Table has the structure:
+            plant (str): first part of file name
+            replicate (str): second part of file name
+            length (int): total vein length
+
+        Args:
+            masks (list of strings): list of image file paths to extract
+                vein length from. These should be the probability values
+                created by the NN model.
+            table_name (str): name of sql table
+            database_conn (str): any database connection supported by
+                sqlalchemy (e.g. sqlite:///results.sqlite for writing to a file)
+            threshold (float): mask segmentation threshold between 0 and 1.
+    '''
     db = dataset.connect(database_conn)
     table = db[table_name]
     table.delete()
@@ -32,7 +51,7 @@ def main(masks,database_conn,table_name):
         replicate = filename.split('-')[1][0]
 
         probs = io.imread(image)
-        seg = probs/2**16 > 0.4
+        seg = probs/2**16 > threshold
         med = medial_axis(seg)
         length = np.sum(med)
         table.insert(dict(plant=plant, replicate=replicate, length=int(length)))

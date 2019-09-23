@@ -31,12 +31,13 @@ def parse_args():
                         help="Comment to pass to tensorbaordX")
     parser.add_argument('--logdir', default=None,
                         help="Where to save log data")
-    parser.add_argument('--dataset', default="VEINS_100", type=str,
+    parser.add_argument('--dataset_path', default="../../data/processed/training/", type=str,
                         help="Data set to train on (MNIST or SVHN) default: MNIST")
     parser.add_argument('--augment', action='store_true', default=False,
-                        help="Augment dataset")
-    parser.add_argument('--weighted-ce', action='store_true', default=False,
-                        help="Use weighted cross-entropy loss, default is unweighted")
+            help="Augment dataset")
+    parser.add_argument('--weighted-ce', type=float, default=None,
+                        help=("Weight given to background pixels for weighted cross-entropy",
+                            " loss, default is unweighted:."))
     parser.add_argument('--cv', default=None, type=int,
                         help=("Setup dataloader for a n-way cross-validation,"
                         " where N is given as --cv N, used in conjunction with"
@@ -48,7 +49,7 @@ def parse_args():
     return  parser.parse_args()
 
 def VEINS_100_loaders(args):
-    train_data = PairedImages('../../data/processed/veins/',
+    train_data = PairedImages(args.dataset_path,
                                augment = args.augment,
                                cv=args.cv,
                                n_split=args.n_cv)
@@ -56,7 +57,7 @@ def VEINS_100_loaders(args):
     train_loader = DataLoader(train_data, batch_size=args.batch_size,
                               shuffle=True, num_workers=4, pin_memory=True)
 
-    test_data = PairedImages('../../data/processed/veins/',
+    test_data = PairedImages(args.dataset_path,
                               augment = False,
                               cv=args.cv,
                               n_split=args.n_cv,

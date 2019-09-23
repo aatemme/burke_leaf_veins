@@ -26,6 +26,8 @@ dataset = "*"
 datafreeze = "*"
 nbconvert = "*"
 normality = "*"
+albumentations = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.6"
