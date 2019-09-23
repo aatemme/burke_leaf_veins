@@ -38,7 +38,7 @@ To create the training dataset, run:
   make dataset
 ```
 
-This will create the folder data/processed/veins with the training data enclosed. 
+This will create the folder data/processed/veins with the training data enclosed.
 
 The traced (target) images are slightly modified to remove non-binary
 pixels and to remove small gaps between lines that should be
@@ -51,15 +51,20 @@ Image names in the data/raw/Veins machine learning with Chris/blacklist.csv
 will be ignored.
 
 
-
-
 Segment Images
 ---------------
 
-## v3_dilations.
-v3_dilations is the most current/best trained model to date. The model weights from the noAug_dilations_epoch800 save point is used.
+The models require ~12.5Gb of memory to segment an image. Segmentations were performed on the CPU due to the large memory requirements. On the cpu, one images takes ~1.5min to segment.
 
-The model requires ~12.5Gb of memory to segment an image. Segmentations were performed on the CPU due to the large memory requirements. On the cpu, one images takes ~1.5min to segment.
+## FINAL
+To segment a folder of images using the final trained model, see the
+`src/data/segment_extract_length_folder_sapleo2.sh`. This enables segmentation
+of images on UGA's sapelo2 cluster.
+
+## v3_dilations.
+v3_dilations was the last model derivation tried before training the last model.
+It is kept here for posterity.  
+The model weights from the noAug_dilations_epoch800 save point is used.
 
 ### To segment the images set aside for testing using the v3_dilations model:
 ```bash
