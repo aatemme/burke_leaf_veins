@@ -27,12 +27,20 @@ def main(base_folder,output_file):
             event_acc.Reload()
 
             test_loss = event_acc.Scalars('test/test_loss')
+            train_loss = event_acc.Scalars('test/train_loss')
 
             steps = len(test_loss)
 
             fout.write(file_path)
+            fout.write(',%s'%('test'),)
             for i in range(steps):
                 fout.write(",%s"%(test_loss[i][2],))
+            fout.write("\n")
+
+            fout.write(file_path)
+            fout.write(',%s'%('train'))
+            for i in range(steps):
+                fout.write(",%s"%(train_loss[i][2],))
             fout.write("\n")
 
 if __name__ == '__main__':
