@@ -32,17 +32,22 @@ cd $PBS_O_WORKDIR
 
 ml Python/3.6.4-foss-2018a
 
-
-#These need to be relative to the project root.
-# The base folder is whereever the script is subitted to qsub from.
+#All files must be relative to the project root.
+# The current directory is the directory the script is subitted to qsub from.
+# PROJECT_ROOT can be left as is if submitting from the src/data folder
 PROJECT_ROOT=../..
-FINAL_MODEL=$PROJECT_ROOT/models/FINAL/src/
-FINAL_STATE=$PROJECT_ROOT/models/FINAL/saves/FINAL_CE05_epoch1900 # <- This is the final model weights
-THRESHOLD=0.6 #<- This was chosen using cross validation. It does not need changed
-RESULTS_FOLDER=$PROJECT_ROOT/data/interm/exmaple_run
 
-#This input supports wildcards, in this case, it tells the script to
-# segment all (*) images in the real folder that end in .jpeg
+# These values should not need changed from run to run
+FINAL_MODEL=$PROJECT_ROOT/models/FINAL/src/ # <- code for the final model
+FINAL_STATE=$PROJECT_ROOT/models/FINAL/saves/FINAL_CE05_epoch500 # <- final model weights
+THRESHOLD=0.8 #<- This was chosen using cross validation. It does not need changed
+
+#This is the folder in which to put the results.
+RESULTS_FOLDER=$PROJECT_ROOT/data/interm/example_test_run
+
+# The images to segment. Itt supports wildcards, in the exmaple below,
+# it tells the script to segment all (*) images in the real folder
+# that end in .jpeg
 IMAGES=$PROJECT_ROOT/data/processed/validation/real/*.jpeg
 
 mkdir -p $RESULTS_FOLDER

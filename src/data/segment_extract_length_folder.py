@@ -150,6 +150,11 @@ def main(model,state,image_list,results_folder, threshold):
             )
 
             med = medial_axis(seg)
+            io.imsave(
+                join(results_folder,
+                     filename.split(".")[0] + "_medialAxis.png"),
+                (med * 2**16).astype('uint16')
+            )
             length = np.sum(med)
             plant = filename.split('-')[0]
             replicate = filename.split('-')[1][0]
