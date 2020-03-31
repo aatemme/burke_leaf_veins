@@ -9,6 +9,7 @@ import torch
 from skimage import io
 from skimage.util import pad
 from skimage.transform import rescale
+from skimage.filters import gaussian as gauss
 
 project_dir = Path(__file__).resolve().parents[2]
 sys.path.append(join(project_dir,'src','models','dataloaders'))
@@ -106,6 +107,8 @@ def main(model,state,images,results_folder, threshold, fold_cv, fold):
 
         y = segment(net,image)
 
+        y = gauss(y,sigma=12)
+
         io.imsave(
             join(results_folder,
                  basename(image_path).split(".")[0] + "_probs.png"),
@@ -114,7 +117,6 @@ def main(model,state,images,results_folder, threshold, fold_cv, fold):
 
         seg = y > threshold
         image[seg,1] = 1
-
 
         io.imsave(
             join(results_folder,
