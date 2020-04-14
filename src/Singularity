@@ -1,0 +1,43 @@
+Boostrap: docker
+From: pytorch/pytorch
+
+%environment
+    SHELL=/bin/bash
+    exprot SHELL
+
+# %setup
+#  mkdir -p ${SINGULARITY_ROOTFS}/burke_leaf_veins/src/
+#  mkdir -p ${SINGULARITY_ROOTFS}/burke_leaf_veins/weights/
+
+%files
+  requirements.txt /
+  data /burke_leaf_veins/src/
+  eval /burke_leaf_veins/src/
+  models/FINAL/src /burke_leaf_veins/src/final_model
+  ../models/FINAL/saves/FINAL_CE05_epoch500 /burke_leaf_veins/weights
+  ../data/processed/validation/cropped_real.png /burke_leaf_veins/test/cropped_real.png
+
+%post
+  pip install -r /requirements.txt
+
+%test
+  python /burke_leaf_veins/src/data/segment_extract_length_folder.py \
+              /burke_leaf_veins/src/final_model/ \
+              /burke_leaf_veins/weights/ \
+              . \
+              /burke_leave_veins/test/cropped_real.jpg \
+              --threshold 0.8
+
+%help
+  [CMD] result-folder images
+
+  images accepts wildcards. For example, to process all images
+  in a folder that have the .jpg extension, use "*.jpg".
+
+%runscript
+  python /burke_leaf_veins/src/data/segment_extract_length_folder.py \
+                /burke_leaf_veins/src/final_model/ \
+                /burke_leaf_veins/weights/ \
+                $1 \
+                $2 \
+                --threshold 0.8

@@ -9,7 +9,7 @@ verify_ssl = true
 pytest = "*"
 pandas = "*"
 tensorboard = "*"
-torch = {file = "https://download.pytorch.org/whl/cu100/torch-1.0.1.post2-cp36-cp36m-linux_x86_64.whl"}
+torch = "*"
 pytorch-utils = {git = "git://github.com/cottersci/pytorch_utils"}
 jupyter = "*"
 pyqt5 = "*"
