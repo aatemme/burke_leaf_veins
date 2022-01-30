@@ -11,6 +11,6 @@ ml Python/3.6.4-foss-2018a
 # There was a disk i/o error if I tried to write the data from each
 # job into the same sqlite file
 pipenv run python src/eval/extract_vein_length.py \
-                        sqlite:///data/interm/cv${FOLD}_threshold${THRESH}_lengths.sqlite \
+                        sqlite:///data/interm/smoothed_cv${FOLD}_threshold${THRESH}_lengths.sqlite \
                         vein_lengths \
-                        ${THRESH} models/FINAL/threshold_cv/${FOLD}/${THRESH}/*_probs.png
+                        ${THRESH} models/FINAL/threshold_smoothed_cv/${FOLD}/${THRESH}/*_probs.png

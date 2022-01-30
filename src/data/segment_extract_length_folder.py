@@ -25,7 +25,7 @@ from skimage import io
 from skimage.util import pad
 from skimage.transform import rescale
 from skimage.morphology import medial_axis
-
+from skimage.filters import gaussian as gauss
 
 project_dir = Path(__file__).resolve().parents[2]
 sys.path.append(join(project_dir,'src','models','dataloaders'))
@@ -133,6 +133,7 @@ def main(model,state,image_list,results_folder, threshold):
             image = io.imread(image_path)
 
             y = segment(net,image)
+            y = gauss(y,sigma=12)
 
             io.imsave(
                 join(results_folder,
@@ -141,12 +142,13 @@ def main(model,state,image_list,results_folder, threshold):
             )
 
             seg = y > threshold
-            image[seg,1] = 1
+            seg_overlay = np.copy(image)
+            seg_overlay[seg,1] = 1
 
             io.imsave(
                 join(results_folder,
                      filename.split(".")[0] + "_overlay.png"),
-                image
+                seg_overlay
             )
 
             med = medial_axis(seg)
@@ -155,6 +157,16 @@ def main(model,state,image_list,results_folder, threshold):
                      filename.split(".")[0] + "_medialAxis.png"),
                 (med * 2**16).astype('uint16')
             )
+
+            medAxis_overlay = np.copy(image)
+            medAxis_overlay[med,1] = 2**16
+
+            io.imsave(
+                join(results_folder,
+                     filename.split(".")[0] + "_medialAxisOverlay.png"),
+                medAxis_overlay
+            )
+
             length = np.sum(med)
             plant = filename.split('-')[0]
             replicate = filename.split('-')[1][0]

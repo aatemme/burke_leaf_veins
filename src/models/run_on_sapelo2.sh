@@ -21,7 +21,7 @@ ml cuDNN/7.0.4-CUDA-9.0.176
 ml Python/3.6.4-foss-2018a
 
 # Use this to start a new training
-#pipenv run python train.py --comment $RUN --seed 1 --weighted-ce 0.05 --save-interval 100
+pipenv run python train.py --comment $RUN --seed 1 --weighted-ce 0.1 --save-interval 100
 
 # Use this to resume training from a save point
-pipenv run python train.py --comment $RUN --resume ./saves/FINAL_SECOND_RUN/FINAL_CE05_epoch1800
+#pipenv run python train.py --comment $RUN --resume ./saves/FINAL_SECOND_RUN/FINAL_CE05_epoch1800
